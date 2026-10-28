@@ -1,0 +1,16 @@
+{
+  "name": "totem-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source Totem dashboard demo with fictional, in-memory data.",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "repository": { "type": "git", "url": "https://github.com/totemlayer/totem-dashboard.git" },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test"
+  }
+}
