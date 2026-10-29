@@ -10,7 +10,7 @@ The open-source dashboard demo for Totem. Explore assistants, company connection
 
 | Home                                              | Messages                                                      | Missions                                                         |
 | ------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
-| [![Home dashboard](docs/home.png)](docs/home.png) | [![Messages workspace](docs/messages.png)](docs/messages.png) | [![New Mission workspace](docs/missions.png)](docs/missions.png) |
+| [![Home dashboard](docs/home.jpg)](docs/home.jpg) | [![Messages workspace](docs/messages.jpg)](docs/messages.jpg) | [![New Mission workspace](docs/missions.jpg)](docs/missions.jpg) |
 
 <details>
 <summary>Run locally (developers)</summary>
