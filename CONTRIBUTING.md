@@ -4,7 +4,7 @@ Contributions to the dashboard interface, accessibility, responsive layout, demo
 
 1. Fork this repository and create a branch.
 2. Run `npm start` with Node.js 22 or newer.
-3. Make your change using fictional data only.
+3. Make your change using sample data only.
 4. Run `npm test` and `npm run build`.
 5. Check the affected screens with a keyboard, at a narrow viewport, and in both themes.
 6. Open a pull request describing the behavior change and your checks.

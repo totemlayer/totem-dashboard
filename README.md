@@ -1,14 +1,15 @@
 # Totem Dashboard
 
-The open-source dashboard demo for Totem. Explore assistants, company connections, Missions, messages, and action reviews with fictional data and local interactions.
+The open-source dashboard demo for Totem. Explore assistants, company connections, Missions, messages, and action reviews with sample data and local interactions.
 
 **[Try the live demo](https://totemlayer.github.io/totem-dashboard/)** — opens in your browser, with no account or installation required.
 
 **This repository contains the dashboard interface and its demo simulations. The Totem backend, agent runtime, production services, and customer data are not included.** The full Totem platform remains proprietary.
 
-![Totem dashboard with fictional demo data](docs/dashboard.png)
+![Totem dashboard preview](docs/dashboard.png)
 
-## Run locally
+<details>
+<summary>Run locally (developers)</summary>
 
 Install [Node.js](https://nodejs.org/) 22 or newer, then:
 
@@ -18,29 +19,31 @@ cd totem-dashboard
 npm start
 ```
 
-Open **http://127.0.0.1:4173**. There are no dependencies to install, API keys to supply, or accounts to create. Use `npm run dev` to restart the preview server when its files change; refresh the browser after edits.
+Open **http://localhost:4173**. There are no dependencies to install, API keys to supply, or accounts to create. Use `npm run dev` to restart the preview server when its files change; refresh the browser after edits.
 
-If the default port is occupied, set the `PORT` environment variable to another port before running `npm start`. The preview server binds to your computer's loopback address.
+If the default port is occupied, set the `PORT` environment variable to another port before running `npm start`. The preview server runs on your computer.
+
+</details>
 
 ## Explore
 
 - **Home:** workspace summary, pending demo requests, and sample activity.
-- **Assistants:** search by name or skill, filter status, add fictional assistants, view profiles, pause, and resume.
-- **Totem Network:** toggle fictional connections, create Missions, and advance simulated task steps.
+- **Assistants:** search by name or skill, filter status, add sample assistants, view profiles, pause, and resume.
+- **Totem Network:** toggle sample connections, create Missions, and advance simulated task steps.
 - **Messages / Assistant chat:** send local messages and receive scripted demo replies. No model runs.
-- **Review:** approve or decline fictional requests and inspect the session's activity. Decisions do not authorize or execute real actions.
+- **Review:** approve or decline sample requests and inspect the session's activity. Decisions do not authorize or execute real actions.
 - **Usage:** a fixed illustrative chart and counters for your demo session. No real billing or metering.
 - **Settings:** switch themes or reset demo data.
 - **Developer:** see the public repository's scope.
 
-All names, organizations, messages, usage figures, and initial activity are fictional. Changes live in page memory and disappear on reload. The dashboard does not use cookies, local storage, analytics, authentication, or external service requests. Do not enter real credentials or sensitive information into a demo.
+Names, organizations, messages, usage figures, and initial activity use sample data. Changes live in page memory and disappear on reload. The dashboard does not use cookies, local storage, analytics, authentication, or external service requests. Do not enter real credentials or sensitive information into a demo.
 
 ## Scope
 
 | Included under MIT | Outside this repository |
 | --- | --- |
 | Dashboard layout, navigation, and styles | Agent execution and automatic receiving |
-| Fictional demo fixtures | Production messaging and orchestration |
+| Sample demo fixtures | Production messaging and orchestration |
 | Local interaction logic | Authentication, authorization, and credential services |
 | Preview server and static export | Billing, deployment infrastructure, and customer data |
 | Tests and contribution instructions | Proprietary backend source and private Git history |
@@ -61,7 +64,7 @@ index.html          Accessible dashboard shell and demo disclosure
 styles.css          Responsive layout and light/dark themes
 mark.svg            Totem brand mark
 src/app.mjs         Views and browser interactions
-src/demo-data.mjs   Fictional initial data
+src/demo-data.mjs   Sample initial data
 src/model.mjs       In-memory state changes and text escaping
 server.mjs          Local preview with an explicit public-file allowlist
 scripts/build.mjs   Static export

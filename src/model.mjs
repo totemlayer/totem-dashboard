@@ -80,6 +80,6 @@ export function toggleConnection(state, id) {
   const connection = state.connections.find(c => c.id === id);
   if (!connection) throw new Error('Connection not found.');
   connection.enabled = !connection.enabled;
-  record(state, `${connection.name} ${connection.enabled ? 'connected' : 'disconnected'}`, 'Fictional connection; no external system contacted');
+  record(state, `${connection.name} ${connection.enabled ? 'connected' : 'disconnected'}`, 'Sample connection; no external system contacted');
   return connection;
 }

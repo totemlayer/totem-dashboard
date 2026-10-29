@@ -84,7 +84,7 @@ function assistantsPage() {
 function networkTabs(current) { return `<nav class="tabs" aria-label="Network pages">${[['connections', 'Connections'], ['missions', 'Missions'], ['messages', 'Messages']].map(([r, label]) => `<a href="#${r}"${current === r ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav>`; }
 function connectionsPage() {
   return heading('Totem Network', 'Explore how connected teams appear in the dashboard.') + networkTabs('connections') +
-    `<p class="section-note">These companies are fictional. Connecting or disconnecting changes only this demo.</p><section class="connection-list" aria-label="Demo connections">${state.connections.map(c => `<article class="connection-row">${avatar(c)}<div><h2>${h(c.name)}</h2><p>${h(c.description)}</p></div>${badge(c.enabled ? 'Connected' : 'Disconnected')}${button(c.enabled ? 'Disconnect' : 'Connect', 'toggle-connection', c.id)}</article>`).join('')}</section>`;
+    `<p class="section-note">Explore company connections. Connecting or disconnecting changes only this demo.</p><section class="connection-list" aria-label="Demo connections">${state.connections.map(c => `<article class="connection-row">${avatar(c)}<div><h2>${h(c.name)}</h2><p>${h(c.description)}</p></div>${badge(c.enabled ? 'Connected' : 'Disconnected')}${button(c.enabled ? 'Disconnect' : 'Connect', 'toggle-connection', c.id)}</article>`).join('')}</section>`;
 }
 
 function missionsPage() {
@@ -105,23 +105,23 @@ function messagesPage() {
 function reviewPage() {
   return heading('Review', 'Keep track of requests and decisions in your demo workspace.') +
     `<div class="section-heading"><h2>Action checks</h2><span class="subtle">${countPending()} pending</span></div><section class="approval-list" aria-label="Demo action checks">${state.approvals.map(a => `<article class="panel approval"><div class="section-heading"><h2>${h(a.title)}</h2>${badge(a.status)}</div><p>${h(a.detail)}</p><div class="approval-meta"><span>${h(a.assistant)}</span><span>${h(a.scope)}</span></div>${a.status === 'Pending' ? `<div class="approval-actions">${button('Decline', 'decline', a.id)}${button('Approve demo request', 'approve', a.id, 'primary')}</div>` : '<p class="section-note">Decision saved in this session. No external action was performed.</p>'}</article>`).join('')}</section>` +
-    `<section class="panel activity-panel"><div class="section-heading"><h2>Activity</h2><span class="subtle">Fictional events and this session’s changes</span></div>${activityList(20)}</section>`;
+    `<section class="panel activity-panel"><div class="section-heading"><h2>Activity</h2><span class="subtle">Sample events and this session’s changes</span></div>${activityList(20)}</section>`;
 }
 
 function usagePage() {
   const sent = state.messages.filter(m => m.role === 'user').length;
   return heading('Usage', 'Illustrative usage, separate from any real Totem account or billing.') +
-    `<div class="usage-grid"><section class="panel"><div class="section-heading"><h2>Sample weekly activity</h2><span class="badge neutral">Fictional chart</span></div><p>Messages in an example workspace. These are fixed sample values.</p><div class="chart" role="img" aria-label="Fictional messages: Monday 12, Tuesday 18, Wednesday 9, Thursday 24, Friday 16, Saturday 5, Sunday 8.">${[['Mon', 12], ['Tue', 18], ['Wed', 9], ['Thu', 24], ['Fri', 16], ['Sat', 5], ['Sun', 8]].map(([day, n]) => `<div><span>${n}</span><div class="bar height-${n}"></div><small>${day}</small></div>`).join('')}</div></section><section class="panel session"><h2>This demo session</h2><dl><div><dt>Messages you sent</dt><dd>${sent}</dd></div><div><dt>Missions completed</dt><dd>${state.missions.filter(m => m.status === 'Completed').length}</dd></div><div><dt>Requests reviewed</dt><dd>${state.approvals.filter(a => a.status !== 'Pending').length}</dd></div><div><dt>Connected services</dt><dd>0</dd></div></dl><p>No billing, metering, or payments are connected.</p></section></div>`;
+    `<div class="usage-grid"><section class="panel"><div class="section-heading"><h2>Sample weekly activity</h2><span class="badge neutral">Sample chart</span></div><p>Messages in an example workspace. These are fixed sample values.</p><div class="chart" role="img" aria-label="Sample messages: Monday 12, Tuesday 18, Wednesday 9, Thursday 24, Friday 16, Saturday 5, Sunday 8.">${[['Mon', 12], ['Tue', 18], ['Wed', 9], ['Thu', 24], ['Fri', 16], ['Sat', 5], ['Sun', 8]].map(([day, n]) => `<div><span>${n}</span><div class="bar height-${n}"></div><small>${day}</small></div>`).join('')}</div></section><section class="panel session"><h2>This demo session</h2><dl><div><dt>Messages you sent</dt><dd>${sent}</dd></div><div><dt>Missions completed</dt><dd>${state.missions.filter(m => m.status === 'Completed').length}</dd></div><div><dt>Requests reviewed</dt><dd>${state.approvals.filter(a => a.status !== 'Pending').length}</dd></div><div><dt>Connected services</dt><dd>0</dd></div></dl><p>No billing, metering, or payments are connected.</p></section></div>`;
 }
 
 function settingsPage() {
   return heading('Settings', 'Preferences for this local demo workspace.') +
-    `<section class="panel settings-panel"><div class="setting-row"><div><h2>Workspace</h2><p>Example Studio · Fictional workspace</p></div><span class="badge neutral">Demo</span></div><div class="setting-row"><div><h2>Appearance</h2><p>Switch between light and dark themes.</p></div>${button(theme === 'light' ? 'Use dark theme' : 'Use light theme', 'theme')}</div><div class="setting-row"><div><h2>Demo data</h2><p>Restore the sample assistants, requests, Missions, and conversations.</p></div>${button('Reset demo', 'reset')}</div><div class="setting-row"><div><h2>Privacy</h2><p>Data lives in page memory. Reloading clears your changes. No accounts, analytics, or external requests are used.</p></div></div></section>`;
+    `<section class="panel settings-panel"><div class="setting-row"><div><h2>Workspace</h2><p>Example Studio · Demo workspace</p></div><span class="badge neutral">Demo</span></div><div class="setting-row"><div><h2>Appearance</h2><p>Switch between light and dark themes.</p></div>${button(theme === 'light' ? 'Use dark theme' : 'Use light theme', 'theme')}</div><div class="setting-row"><div><h2>Demo data</h2><p>Restore the sample assistants, requests, Missions, and conversations.</p></div>${button('Reset demo', 'reset')}</div><div class="setting-row"><div><h2>Privacy</h2><p>Data lives in page memory. Reloading clears your changes. No accounts, analytics, or external requests are used.</p></div></div></section>`;
 }
 
 function developerPage() {
   return heading('Developer', 'An open-source dashboard you can run, change, and learn from.') +
-    `<section class="panel scope"><h2>What’s in this repository</h2><p>The Totem dashboard interface, fictional fixtures, and local simulations are released under the MIT license.</p><div class="scope-grid"><div><h3>Included</h3><ul><li>Workspace navigation and responsive layouts</li><li>Assistant directory, profiles, and local chat</li><li>Simulated Missions, connections, and reviews</li><li>Light and dark themes</li><li>Local preview server and static export</li></ul></div><div><h3>Private platform</h3><ul><li>Agent runtime and automatic receiving</li><li>Production messaging and orchestration</li><li>Authentication and authorization services</li><li>Credentials, security controls, and billing</li><li>Customer data and infrastructure</li></ul></div></div><p>This is the dashboard demo, rather than the full Totem platform. No hosted service access is required or included.</p><a class="button primary" href="https://github.com/totemlayer/totem-dashboard" target="_blank" rel="noopener noreferrer">Open repository ↗</a></section>`;
+    `<section class="panel scope"><h2>What’s in this repository</h2><p>The Totem dashboard interface, sample fixtures, and local simulations are released under the MIT license.</p><div class="scope-grid"><div><h3>Included</h3><ul><li>Workspace navigation and responsive layouts</li><li>Assistant directory, profiles, and local chat</li><li>Simulated Missions, connections, and reviews</li><li>Light and dark themes</li><li>Local preview server and static export</li></ul></div><div><h3>Private platform</h3><ul><li>Agent runtime and automatic receiving</li><li>Production messaging and orchestration</li><li>Authentication and authorization services</li><li>Credentials, security controls, and billing</li><li>Customer data and infrastructure</li></ul></div></div><p>This is the dashboard demo, rather than the full Totem platform. No hosted service access is required or included.</p><a class="button primary" href="https://github.com/totemlayer/totem-dashboard" target="_blank" rel="noopener noreferrer">Open repository ↗</a></section>`;
 }
 
 function render() {
@@ -160,7 +160,7 @@ dialog.addEventListener('close', () => {
   else main.focus({ preventScroll: true });
 });
 function addAssistantDialog() {
-  openDialog('Add assistant', `<p>Create a fictional assistant for this demo. No installation or service connection is required.</p><form id="assistant-form"><label for="assistant-name">Name</label><input id="assistant-name" name="name" maxlength="60" placeholder="e.g. Design assistant" required><label for="assistant-description">Description</label><textarea id="assistant-description" name="description" rows="3" maxlength="240" placeholder="What would this assistant help with?"></textarea><div class="form-error" role="alert"></div><div class="dialog-actions">${button('Cancel', 'close')}<button class="button primary">Add demo assistant</button></div></form>`);
+  openDialog('Add assistant', `<p>Create an assistant for this demo. No installation or service connection is required.</p><form id="assistant-form"><label for="assistant-name">Name</label><input id="assistant-name" name="name" maxlength="60" placeholder="e.g. Design assistant" required><label for="assistant-description">Description</label><textarea id="assistant-description" name="description" rows="3" maxlength="240" placeholder="What would this assistant help with?"></textarea><div class="form-error" role="alert"></div><div class="dialog-actions">${button('Cancel', 'close')}<button class="button primary">Add demo assistant</button></div></form>`);
 }
 function missionDialog() {
   const available = state.assistants.filter(a => a.status === 'Available');
@@ -170,7 +170,7 @@ function missionDialog() {
 function profileDialog(id) {
   const a = state.assistants.find(a => a.id === id);
   if (!a) return;
-  openDialog(a.name, `<div class="profile-identity">${avatar(a)}${badge(a.status)}</div><p>${h(a.description)}</p><h3>Skills</h3><div class="skills">${a.skills.map(s => `<span>${h(s)}</span>`).join('')}</div><p class="section-note">This fictional profile has no connected agent runtime, model, or account.</p><div class="dialog-actions">${button('Close', 'close')}${button('Open demo chat', 'chat', a.id, 'primary')}</div>`);
+  openDialog(a.name, `<div class="profile-identity">${avatar(a)}${badge(a.status)}</div><p>${h(a.description)}</p><h3>Skills</h3><div class="skills">${a.skills.map(s => `<span>${h(s)}</span>`).join('')}</div><p class="section-note">This demo profile has no connected agent runtime, model, or account.</p><div class="dialog-actions">${button('Close', 'close')}${button('Open demo chat', 'chat', a.id, 'primary')}</div>`);
 }
 
 document.addEventListener('click', event => {
@@ -186,7 +186,7 @@ document.addEventListener('click', event => {
     if (action === 'new-mission') return missionDialog();
     if (action === 'profile') return profileDialog(id);
     if (action === 'reset') {
-      openDialog('Reset demo?', `<p>This clears your local messages and changes, and restores the fictional sample data.</p><div class="dialog-actions">${button('Cancel', 'close')}${button('Reset demo data', 'confirm-reset', '', 'primary')}</div>`);
+      openDialog('Reset demo?', `<p>This clears your local messages and changes, and restores the sample data.</p><div class="dialog-actions">${button('Cancel', 'close')}${button('Reset demo data', 'confirm-reset', '', 'primary')}</div>`);
       return;
     }
     if (action === 'confirm-reset') { state = createDemoState(); query = ''; filter = 'all'; dialog.close(); notify('Demo data reset.'); }

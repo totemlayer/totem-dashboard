@@ -5,7 +5,7 @@ import { escapeHtml, filterAssistants, addAssistant, toggleAssistant, decideAppr
 
 test('a fresh demo restores fixtures without sharing mutable state', () => {
   const a = createDemoState(), b = createDemoState();
-  addAssistant(a, 'Design helper', 'Fictional design assistant');
+  addAssistant(a, 'Design helper', 'Sample design assistant');
   a.assistants[0].skills.push('Changed');
   assert.equal(b.assistants.length, 3);
   assert.equal(b.assistants[0].skills.includes('Changed'), false);
@@ -29,7 +29,7 @@ test('adding an assistant validates input and makes its local conversation usabl
   const state = createDemoState();
   assert.throws(() => addAssistant(state, ' ', ''), /name/);
   assert.throws(() => addAssistant(state, 'x'.repeat(61), ''), /name/);
-  const assistant = addAssistant(state, '  Design helper  ', 'Reviews fictional designs');
+  const assistant = addAssistant(state, '  Design helper  ', 'Reviews sample designs');
   assert.equal(assistant.name, 'Design helper');
   sendMessage(state, assistant.id, 'Review this brief');
   assert.equal(state.messages.filter(m => m.assistantId === assistant.id).length, 3);
@@ -74,7 +74,7 @@ test('message limits reject empty and oversized text without mutating state', ()
   assert.equal(state.messages.length, before);
 });
 
-test('connection toggling changes only the selected fictional connection', () => {
+test('connection toggling changes only the selected sample connection', () => {
   const state = createDemoState();
   toggleConnection(state, 'demo-field');
   assert.equal(state.connections[2].enabled, true);

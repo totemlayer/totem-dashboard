@@ -42,5 +42,5 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     console.error(error.code === 'EADDRINUSE' ? `Port ${port} is already in use. Choose a different PORT.` : 'Could not start the demo server.');
     process.exitCode = 1;
   });
-  server.listen(port, '127.0.0.1', () => console.log(`Totem Dashboard demo: http://127.0.0.1:${port}`));
+  server.listen(port, '127.0.0.1', () => console.log(`Totem Dashboard demo: http://localhost:${port}`));
 }
