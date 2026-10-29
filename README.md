@@ -2,6 +2,8 @@
 
 The open-source dashboard demo for Totem. Explore assistants, company connections, Missions, messages, and action reviews with fictional data and local interactions.
 
+**[Try the live demo](https://totemlayer.github.io/totem-dashboard/)** — opens in your browser, with no account or installation required.
+
 **This repository contains the dashboard interface and its demo simulations. The Totem backend, agent runtime, production services, and customer data are not included.** The full Totem platform remains proprietary.
 
 ![Totem dashboard with fictional demo data](docs/dashboard.png)
@@ -67,6 +69,12 @@ tests/              Node.js tests
 ```
 
 The content security policy blocks fetch, WebSocket, and similar page connections. JavaScript and styles load from the same origin. When serving the static export, configure your host to add `Content-Security-Policy: frame-ancestors 'none'` if you also need to prevent embedding; that directive requires an HTTP header. The bundled local preview supplies this header.
+
+## Live demo deployment
+
+The demo is hosted on [GitHub Pages](https://totemlayer.github.io/totem-dashboard/). The [deployment workflow](.github/workflows/pages.yml) tests the dashboard, exports the six public assets, and publishes only `dist/` when changes reach `main`. The workflow can also be run manually from the repository's Actions tab. The local server, documentation, tests, and repository files are not part of the hosted artifact.
+
+The workflow deploys only from `totemlayer/totem-dashboard`. To publish your own fork, update that repository guard and the demo links, then enable GitHub Pages with GitHub Actions as its publishing source.
 
 To build a real application from the interface, replace the fixtures and local model with your own backend. Define and enforce identity, access controls, credential handling, and execution permissions on the server. The browser demo does not supply these controls.
 
