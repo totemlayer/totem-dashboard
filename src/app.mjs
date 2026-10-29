@@ -8,6 +8,8 @@ import {
   createMission,
   advanceMission,
   sendMessage,
+  listDemoConversations,
+  addMissionNote,
   toggleConnection,
 } from "./model.mjs";
 
@@ -24,11 +26,26 @@ let missionQuery = "";
 let conversationQuery = "";
 let chartPeriod = "30";
 let promptDraft = "";
-let promptAssistantId = "demo-research";
+let promptAssistantId = "";
+let draftingMission = false;
+let activeConversationId = "";
+let selectedRecipientId = "";
+let messageDraft = "";
+let messageAttachments = [];
+let conversationFilter = "all";
+let missionNoteDraft = "";
 let toastTimer;
 const main = document.querySelector("main");
 const dialog = document.querySelector("dialog");
 const paths = {
+  "message-square":
+    '<path d="M21 15a3 3 0 0 1-3 3H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
+  team: '<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M21 21v-3a6 6 0 0 0-4-5"/>',
+  "mission-step":
+    '<path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/>',
+  attach:
+    '<path d="m21 11-8.5 8.5a6 6 0 0 1-8.5-8.5L13 2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8L15 6"/>',
+  appearance: '<path d="M4 7h16M4 17h16M8 4v6M16 14v6"/>',
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>',
   assistants:
     '<rect x="4" y="6" width="16" height="14" rx="4"/><path d="M12 6V3m-4 8v2m8-2v2m-7 4h6M1 11v4m22-4v4"/>',
@@ -177,45 +194,50 @@ function renderNavigation() {
 }
 function studioNavigation(current) {
   if (current === "missions")
-    return `<div class="studio-sidebar-heading"><strong>Missions</strong><button class="icon-button" data-action="new-mission" aria-label="New Mission">${icon("plus")}</button></div><label class="sr-only" for="mission-search">Search missions</label><input id="mission-search" type="search" placeholder="Search missions" value="${h(missionQuery)}"><div class="mission-links">${state.missions
+    return `<div class="studio-sidebar-heading"><strong>Missions</strong><button class="icon-button" data-action="new-mission" aria-label="New mission">${icon("plus")}</button></div><label class="sr-only" for="mission-search">Search missions</label><input id="mission-search" type="search" placeholder="Search missions" value="${h(missionQuery)}"><div class="mission-links">${state.missions
       .filter((m) => m.title.toLowerCase().includes(missionQuery.toLowerCase()))
       .map(
         (m) =>
-          `<button data-action="select-mission" data-id="${h(m.id)}" aria-pressed="${m.id === selectedMissionId}">${icon("review")}<span><strong>${h(m.title)}</strong><small>${h(m.status)}</small></span></button>`,
+          `<button data-action="select-mission" data-id="${h(m.id)}" aria-pressed="${!draftingMission && m.id === selectedMissionId}">${icon("mission-step")}<span><strong>${h(m.title)}</strong><small>${h(m.status)}</small></span></button>`,
       )
       .join(
         "",
-      )}</div><div class="studio-sidebar-links"><button class="button" data-action="new-mission">Automations</button><a href="#review">All missions & access requests</a><a href="#usage">Recurring workflows</a></div>`;
-  return `<div class="studio-sidebar-heading"><strong>Messages</strong><button class="icon-button" data-action="new-message" aria-label="New message">${icon("plus")}</button></div><label class="sr-only" for="chat-assistant">Send as</label><select id="chat-assistant">${state.assistants.map((a) => `<option value="${h(a.id)}" ${a.id === state.selectedAssistantId ? "selected" : ""}>${h(a.name)}</option>`).join("")}</select><small class="subtle">▸ Demo environment</small><label class="search conversation-search">${icon("search")}<input id="conversation-search" aria-label="Search conversations" placeholder="Search conversation" value="${h(conversationQuery)}"></label><div class="conversation-list">${state.assistants
-    .filter((a) =>
-      a.name.toLowerCase().includes(conversationQuery.toLowerCase()),
-    )
-    .map(
-      (a) =>
-        `<button data-action="select-chat" data-id="${h(a.id)}" aria-pressed="${a.id === state.selectedAssistantId}">${icon("chat")}<span><strong>${h(a.name)}</strong><small>${h(a.status)}</small></span></button>`,
-    )
-    .join(
-      "",
-    )}</div><a class="button primary find-agents" href="#assistants">Find agents</a>`;
+      )}</div><div class="studio-sidebar-links"><button class="button" data-action="automations">Automations</button><a href="#review">All missions & access requests</a><button class="text-button" data-action="automations">Recurring workflows</button></div>`;
+  const conversations = listDemoConversations(
+    state,
+    state.selectedAssistantId,
+  ).filter(
+    (c) =>
+      `${c.name} ${c.preview}`
+        .toLowerCase()
+        .includes(conversationQuery.toLowerCase()) &&
+      (conversationFilter === "all" ||
+        state.connections.find((x) => x.id === c.recipientId)?.enabled),
+  );
+  return `<div class="studio-sidebar-heading"><strong>Messages</strong><button class="icon-button" data-action="new-message" aria-label="New message">${icon("plus")}</button></div><label class="sr-only" for="chat-assistant">Send as</label><select id="chat-assistant">${state.assistants.map((a) => `<option value="${h(a.id)}" ${a.id === state.selectedAssistantId ? "selected" : ""}>${h(a.name)}</option>`).join("")}</select><small class="subtle">▸ Demo environment</small><div class="conversation-search-row"><label class="search conversation-search">${icon("search")}<input id="conversation-search" aria-label="Search conversations" placeholder="Search conversation" value="${h(conversationQuery)}"></label><button class="text-button conversation-filter" data-action="filter-conversations" aria-pressed="${conversationFilter === "connected"}">${icon("appearance")} Filter</button></div><div class="conversation-list">${conversations.length ? conversations.map((c) => `<button data-action="open-conversation" data-id="${h(c.id)}" aria-pressed="${activeConversationId === c.id}">${icon("message-square")}<span><strong>${h(c.name)}</strong><small>${h(c.preview.slice(0, 45))}</small></span></button>`).join("") : '<p class="no-conversations">No conversations yet.</p>'}</div><a class="button primary find-agents" href="#assistants">Find agents</a>`;
 }
+
 function homeAgentTable() {
   const agents = filterAssistants(state.assistants, query, filter);
   return `<div class="home-agent-toolbar"><h2>Your agents</h2><label class="search">${icon("search")}<input id="assistant-search" type="search" aria-label="Search registered agents" placeholder="Search agents" value="${h(query)}"></label><select id="assistant-filter" aria-label="Filter agents by status"><option value="all">All statuses</option>${["Available", "Paused"].map((v) => `<option ${filter === v ? "selected" : ""}>${v}</option>`).join("")}</select><div class="view-buttons"><button class="icon-button" data-action="list-view" aria-label="List view" aria-pressed="${agentView === "list"}">${icon("list")}</button><button class="icon-button" data-action="grid-view" aria-label="Grid view" aria-pressed="${agentView === "grid"}">${icon("grid")}</button></div></div>${agents.length ? `<div class="home-agent-table ${agentView === "grid" ? "grid-view" : ""}"><table><thead><tr><th>Agent</th><th>Status</th><th>Workspace</th><th>Active permissions</th><th>Permission expires</th><th>Action</th></tr></thead><tbody>${agents.map((a) => `<tr><td><button class="text-button" data-action="profile" data-id="${h(a.id)}">${h(a.name)}</button></td><td><span class="status-dot ${a.status === "Available" ? "enabled" : "paused"}" role="img" aria-label="${h(a.status)}"></span></td><td>Example Studio</td><td>0</td><td>None</td><td><button class="text-button" data-action="profile" data-id="${h(a.id)}" aria-label="View ${h(a.name)}">↗</button></td></tr>`).join("")}</tbody></table></div>` : empty("No agents found", "Try another name or status.")}<div class="table-footer"><button class="text-button" data-action="add-assistant">Connect agent</button><a href="#assistants">View agents ↗</a></div>`;
 }
-function missionPrompt() {
-  return `<div class="home-workspace-switch"><button aria-pressed="true">Individual</button><button class="icon-button" data-action="account" aria-label="Workspace options">${icon("plus")}</button></div><button class="icon-button appearance-trigger" data-action="theme" aria-label="Customize appearance">${icon("settings")}</button><section class="home-prompt-area" aria-labelledby="mission-prompt-heading"><h1 id="mission-prompt-heading">What's the next mission?</h1><form id="quick-mission-form" class="mission-prompt"><label for="quick-mission">New mission</label><textarea id="quick-mission" name="mission" aria-label="Describe your mission" maxlength="400" placeholder="Describe a task, an idea, or something to work on…" required>${h(promptDraft)}</textarea><div class="prompt-tools"><label class="prompt-agent-picker"><span>+</span><select name="assistant" id="prompt-assistant" aria-label="Choose a Mission agent">${state.assistants
+function missionAgentPicker() {
+  return `<details class="prompt-agent-picker"><summary>+ ${promptAssistantId ? "1 agent" : "0 agents"}</summary><div class="prompt-agent-menu">${state.assistants
     .filter((a) => a.status === "Available")
     .map(
       (a) =>
-        `<option value="${h(a.id)}" ${a.id === promptAssistantId ? "selected" : ""}>${h(a.name)}</option>`,
+        `<label>${avatar(a)}<span>${h(a.name)}</span><input type="radio" name="assistant" value="${h(a.id)}" ${a.id === promptAssistantId ? "checked" : ""} aria-label="Assign ${h(a.name)}"></label>`,
     )
-    .join(
-      "",
-    )}</select></label><button class="icon-button send-button" aria-label="Review new mission">${icon("send")}</button></div></form></section>`;
+    .join("")}</div></details>`;
 }
+function missionPrompt() {
+  return `<div class="home-workspace-switch"><button aria-pressed="true">Individual</button><button class="icon-button" data-action="account" aria-label="Workspace options">${icon("plus")}</button></div><button class="icon-button appearance-trigger" data-action="appearance" aria-label="Customize appearance">${icon("appearance")}</button><section class="home-prompt-area" aria-labelledby="mission-prompt-heading"><h1 id="mission-prompt-heading">What's the next mission?</h1><form id="quick-mission-form" class="mission-prompt"><label for="quick-mission">New mission</label><textarea id="quick-mission" name="mission" aria-label="Describe your mission" maxlength="400" placeholder="Describe a task, an idea, or something to work on…" required>${h(promptDraft)}</textarea><div class="prompt-tools">${missionAgentPicker()}<button class="icon-button send-button" aria-label="Review new mission" ${!promptDraft.trim() || !promptAssistantId ? "disabled" : ""}>${icon("send")}</button></div></form></section>`;
+}
+
 function heatmap() {
-  return `<div class="heatmap" role="img" aria-label="Sample usage activity over the last six months">${Array.from({ length: 168 }, (_, i) => `<span class="heat-${(i * 13 + Math.floor(i / 7)) % 11 > 7 ? (i % 3) + 1 : 0}"></span>`).join("")}</div><div class="heatmap-months"><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span></div><div class="chart-footer"><span>Sample messages sent</span><span>Less ▪ ▪ ▪ ▪ More</span></div>`;
+  return `<div class="heatmap-scroll"><div class="heatmap" role="img" aria-label="Sample usage activity over the last twelve months">${Array.from({ length: 364 }, (_, i) => `<span class="heat-${i > 300 && (i * 13 + Math.floor(i / 7)) % 11 > 7 ? (i % 3) + 1 : 0}"></span>`).join("")}</div><div class="heatmap-months">${["Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"].map((m) => `<span>${m}</span>`).join("")}</div></div><div class="chart-footer"><span>Sample messages sent</span><span class="heatmap-legend">Less ${[0, 1, 2, 3].map((n) => `<i class="heat-${n}"></i>`).join("")} More</span></div>`;
 }
+
 function smoothChartPath(points) {
   const p = points.split(" ").map((pair) => pair.split(",").map(Number));
   let path = `M${p[0].join(",")}`;
@@ -236,7 +258,7 @@ function homePage() {
       : "0,112 75,112 90,98 110,104 133,63 153,77 173,109 192,8 210,106 230,111 270,105 310,109 350,105 390,98 425,35 450,107 475,104 500,66 525,109 560,113";
   return (
     missionPrompt() +
-    `<div class="dashboard-graphs"><section class="message-activity" aria-label="Workspace activity"><div class="chart-heading"><span><strong>${total}</strong> Messages</span><select id="chart-period" aria-label="Message activity period"><option value="7" ${chartPeriod === "7" ? "selected" : ""}>Last 7 days</option><option value="30" ${chartPeriod === "30" ? "selected" : ""}>Last 30 days</option><option value="90" ${chartPeriod === "90" ? "selected" : ""}>Last 90 days</option></select></div><svg class="line-chart" viewBox="0 0 560 135" role="img" aria-label="Sample daily message activity"><path class="chart-guide" d="M0 8H560M0 60H560M0 112H560"/><path d="${smoothChartPath(points)}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg><div class="chart-footer"><span>Sample activity period</span><span>Daily messages · UTC</span></div></section><section class="usage-activity"><div class="chart-heading"><h2>Usage activity</h2><span class="small-control">Messages sent</span><span class="small-control">Daily</span></div>${heatmap()}</section></div><div class="home-agent-section"><section>${homeAgentTable()}</section><aside class="agent-summary"><h2><strong>${state.assistants.length}</strong> Agents</h2><p><span class="status-dot enabled"></span> Enabled <span>${state.assistants.filter((a) => a.status === "Available").length}</span></p><p><span class="status-dot paused"></span> Paused <span>${state.assistants.filter((a) => a.status === "Paused").length}</span></p><p><span class="status-dot"></span> Revoked <span>0</span></p></aside></div>`
+    `<div class="dashboard-graphs"><section class="message-activity" aria-label="Workspace activity"><div class="chart-heading"><span><strong>${total}</strong> Messages</span><select id="chart-period" aria-label="Message activity period"><option value="7" ${chartPeriod === "7" ? "selected" : ""}>Last 7 days</option><option value="30" ${chartPeriod === "30" ? "selected" : ""}>Last 30 days</option><option value="90" ${chartPeriod === "90" ? "selected" : ""}>Last 90 days</option></select></div><div class="line-chart-wrap"><div class="chart-y-axis" aria-hidden="true"><span>24</span><span>12</span><span>0</span></div><svg class="line-chart" viewBox="0 0 560 135" role="img" aria-label="Sample daily message activity"><path class="chart-guide" d="M0 8H560M0 60H560M0 112H560"/><path d="${smoothChartPath(points)}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></div><div class="chart-footer"><span>Sample activity period</span><span>Daily messages · UTC</span></div></section><section class="usage-activity"><div class="chart-heading"><h2>Usage activity</h2><span class="small-control">Messages sent</span><span class="small-control">Daily</span></div>${heatmap()}</section></div><div class="home-agent-section"><section>${homeAgentTable()}</section><aside class="agent-summary"><h2><strong>${state.assistants.length}</strong> Agents</h2><p><span class="status-dot enabled"></span> Enabled <span>${state.assistants.filter((a) => a.status === "Available").length}</span></p><p><span class="status-dot paused"></span> Paused <span>${state.assistants.filter((a) => a.status === "Paused").length}</span></p><p><span class="status-dot"></span> Revoked <span>0</span></p></aside></div>`
   );
 }
 
@@ -275,24 +297,44 @@ function connectionsPage() {
 }
 
 function missionsPage() {
+  if (draftingMission)
+    return `<div class="mission-studio drafting"><button class="studio-history mission-history-trigger" data-action="history">${icon("mission-step")} Mission history</button><button class="icon-button studio-back" data-action="workspace-nav" aria-label="Workspace navigation">${icon("back")}</button><section class="mission-start"><h1>Start a mission</h1><p>Choose your agents and describe the work. Your team’s recorded messages will appear here.</p></section><form id="quick-mission-form" class="mission-draft-composer"><textarea id="quick-mission" name="mission" aria-label="Describe your mission" maxlength="400" placeholder="Ask Totem…" required>${h(promptDraft)}</textarea><div class="prompt-tools">${missionAgentPicker()}<button class="icon-button send-button" aria-label="Review new mission" ${!promptDraft.trim() || !promptAssistantId ? "disabled" : ""}>${icon("send")}</button></div></form></div>`;
   const mission =
-    state.missions.find((m) => m.id === selectedMissionId) || state.missions[0];
-  const assistant = state.assistants.find((a) => a.id === mission.assistantId);
-  return `<div class="mission-studio"><header class="mission-studio-heading"><button class="icon-button studio-back" data-action="workspace-nav" aria-label="Workspace navigation">${icon("back")}</button><span class="mission-orb">${icon("assistants")}</span><h1>${h(mission.title)}</h1><p>1 active agent · ${h(mission.status)}</p><button class="button mission-details" data-action="mission-details" data-id="${h(mission.id)}">ⓘ Details</button></header><section class="mission-thread" aria-label="Mission activity"><article class="mission-thread-message"><span>You <small>Goal</small></span><p>${h(mission.description)}</p></article>${mission.steps.map((step, i) => `<article class="mission-thread-message ${i >= mission.step ? "upcoming" : ""}"><span>${h(assistant?.name || "Assistant")} <small>${i < mission.step ? "Completed" : "Planned"}</small></span><p>${h(step)}</p>${i < mission.step ? "<small>Step completed in the dashboard simulation.</small>" : ""}</article>`).join("")}</section><div class="mission-studio-composer">${mission.status === "Completed" ? "<p>Mission completed</p>" : button("Simulate next step", "advance-mission", mission.id, "primary")}<small>Dashboard simulation · no agent work is executed</small></div></div>`;
+      state.missions.find((m) => m.id === selectedMissionId) ||
+      state.missions[0],
+    assistant = state.assistants.find((a) => a.id === mission.assistantId);
+  return `<div class="mission-studio"><button class="studio-history mission-history-trigger" data-action="history">${icon("mission-step")} Mission history</button><header class="mission-studio-heading"><button class="icon-button studio-back" data-action="workspace-nav" aria-label="Workspace navigation">${icon("back")}</button><span class="mission-orb">${icon("team")}</span><h1>${h(mission.title)}</h1><p>1 active agent · ${h(mission.status)}</p><button class="button mission-details" data-action="mission-details" data-id="${h(mission.id)}">ⓘ Details</button></header><section class="mission-thread" aria-label="Mission activity"><article class="mission-thread-message"><span>You <small>Goal</small></span><p>${h(mission.description)}</p></article>${mission.steps
+    .slice(0, mission.step)
+    .map(
+      (step) =>
+        `<article class="mission-thread-message"><span>${h(assistant?.name || "Assistant")} <small>Completion</small></span><p>${h(step)}</p><small>Recorded in this dashboard simulation.</small></article>`,
+    )
+    .join(
+      "",
+    )}${(mission.notes || []).map((n) => `<article class="mission-thread-message"><span>${n.role === "user" ? "You" : h(assistant?.name || "Assistant")} <small>Message</small></span><p>${h(n.text)}</p></article>`).join("")}</section>${mission.status === "Completed" ? '<div class="mission-completed-note">Mission completed. Its receipts and conversation remain available.</div>' : `<form id="mission-note-form" class="mission-draft-composer mission-followup"><textarea id="mission-note" name="note" aria-label="Message Mission" maxlength="2000" placeholder="Ask Totem…" required>${h(missionNoteDraft)}</textarea><div class="prompt-tools"><span class="subtle">${icon("team")} 1 agent</span><button class="icon-button send-button" aria-label="Send Mission note">${icon("send")}</button></div></form>`}</div>`;
 }
 
 function messagesPage() {
   const selected =
     state.assistants.find((a) => a.id === state.selectedAssistantId) ||
     state.assistants[0];
-  const messages = state.messages.filter((m) => m.assistantId === selected.id);
-  const hasSent = messages.some((m) => m.role === "user");
-  return `<section class="messages-studio"><header class="messages-heading"><button class="icon-button studio-back" data-action="workspace-nav" aria-label="Workspace navigation">${icon("back")}</button><h1>${hasSent ? h(selected.name) : "New message"}</h1><p>Send as ${h(selected.name)}</p></header><div class="chat-messages" role="log" aria-label="Conversation messages">${hasSent ? messages.map((m) => `<article class="message ${m.role}"><span>${m.role === "user" ? "You" : h(selected.name)}</span><p>${h(m.text)}</p></article>`).join("") : `<div class="message-empty"><span>${icon("chat")}</span><h2>Message another agent</h2><p>Send on behalf of ${h(selected.name)}. Choose a connected agent below. Add and approve connections on the Network page.</p></div>`}</div><form id="message-form" class="composer"><label for="message-recipient">Connected agent</label><select id="message-recipient" name="recipient" aria-label="Connected agent">${state.connections
+  const messages = state.messages.filter(
+    (m) =>
+      m.assistantId === selected.id && m.recipientId === selectedRecipientId,
+  );
+  const recipient = state.connections.find((c) => c.id === selectedRecipientId);
+  const hasSent =
+    activeConversationId === `${selected.id}:${selectedRecipientId}` &&
+    messages.some((m) => m.role === "user");
+  return `<section class="messages-studio"><button class="studio-history" data-action="history">${icon("sidebar")} Message history</button><header class="messages-heading"><button class="icon-button studio-back" data-action="workspace-nav" aria-label="Workspace navigation">${icon("back")}</button><h1>${hasSent ? h(recipient?.name || "Messages") : "New message"}</h1><p>Send as ${h(selected.name)}</p></header><div class="chat-messages" role="log" aria-label="Conversation messages">${hasSent ? messages.map((m) => `<article class="message ${m.role}"><span>${m.role === "user" ? "You" : h(selected.name)}</span><p>${h(m.text)}</p></article>`).join("") : `<div class="message-empty"><span>${icon("message-square")}</span><h2>Message another agent</h2><p>Send on behalf of ${h(selected.name)}. Choose a connected agent below. Add and approve connections on the Network page.</p></div>`}</div><form id="message-form" class="composer"><label for="message-recipient">Connected agent</label><select id="message-recipient" name="recipient" aria-label="Connected agent" required><option value="" disabled ${!selectedRecipientId ? "selected" : ""}>Choose a connected agent</option>${state.connections
     .filter((c) => c.enabled)
-    .map((c) => `<option value="${h(c.id)}">${h(c.name)}</option>`)
+    .map(
+      (c) =>
+        `<option value="${h(c.id)}" ${c.id === selectedRecipientId ? "selected" : ""}>${h(c.name)}</option>`,
+    )
     .join(
       "",
-    )}</select><label class="sr-only" for="message">Demo message</label><textarea id="message" name="message" rows="3" placeholder="Write a message…" maxlength="2000" required ${selected.status === "Paused" ? "disabled" : ""}></textarea><div class="composer-tools"><span class="subtle">${selected.status === "Paused" ? "Resume this agent to send a message." : "Scripted replies in this demo"}</span><button class="icon-button send-button" aria-label="Send demo message" ${selected.status === "Paused" ? "disabled" : ""}>${icon("send")}</button></div></form></section>`;
+    )}</select><label class="sr-only" for="message">Demo message</label><textarea id="message" name="message" rows="3" placeholder="Write a message…" maxlength="2000" required ${selected.status === "Paused" ? "disabled" : ""}>${h(messageDraft)}</textarea>${messageAttachments.length ? `<div class="attachment-chips">${messageAttachments.map((file, i) => `<span>${h(file.name)} <button type="button" class="text-button" data-action="remove-attachment" data-id="${i}" aria-label="Remove ${h(file.name)}">×</button></span>`).join("")}</div>` : ""}<div class="composer-tools"><span class="subtle">${selected.status === "Paused" ? "Resume this agent to send a message." : ""}</span><div class="composer-actions"><input id="message-attachments" type="file" multiple class="sr-only" aria-label="Attach files"><label for="message-attachments" class="attach-files">${icon("attach")} Attach files</label><button class="icon-button send-button" aria-label="Send demo message" ${selected.status === "Paused" ? "disabled" : ""}>${icon("send")}</button></div></div></form></section>`;
 }
 
 function reviewPage() {
@@ -363,6 +405,8 @@ function render() {
     developer: developerPage,
   };
   main.innerHTML = pages[route()]();
+  const heatmap = document.querySelector(".heatmap-scroll");
+  if (heatmap) heatmap.scrollLeft = heatmap.scrollWidth;
 }
 
 function notify(text) {
@@ -408,7 +452,7 @@ function workspaceNavigationDialog() {
         : "";
   openDialog(
     "Workspace",
-    `<nav class="navigation-dialog">${navLinks()}</nav>${studio}`,
+    `<nav class="navigation-dialog">${navLinks()}</nav>${studio}<div class="account-links"><button class="text-button" data-action="account">Account options</button></div>`,
   );
 }
 function addAssistantDialog() {
@@ -445,7 +489,71 @@ document.addEventListener("click", (event) => {
     if (action === "close") return dialog.close();
     if (action === "theme") return setTheme();
     if (action === "add-assistant") return addAssistantDialog();
-    if (action === "new-mission") return missionDialog();
+    if (action === "new-mission") {
+      draftingMission = true;
+      promptDraft = "";
+      promptAssistantId = "";
+      if (dialog.open) dialog.close();
+      if (route() !== "missions") {
+        location.hash = "missions";
+        return;
+      }
+      render();
+      document.querySelector("#quick-mission")?.focus();
+      return;
+    }
+    if (action === "appearance")
+      return openDialog(
+        "Appearance",
+        `<p>Choose a theme for this dashboard.</p><div class="appearance-options">${button("Dark", "dark-theme", "", theme === "dark" ? "primary" : "")}${button("Light", "light-theme", "", theme === "light" ? "primary" : "")}</div>`,
+      );
+    if (action === "dark-theme" || action === "light-theme") {
+      theme = action === "dark-theme" ? "light" : "dark";
+      setTheme();
+      return;
+    }
+    if (action === "history") {
+      const content =
+        route() === "missions"
+          ? `<div class="account-links"><button class="button" data-action="new-mission">New mission</button>${state.missions.map((m) => `<button class="text-button" data-action="select-mission" data-id="${h(m.id)}">${h(m.title)}</button>`).join("")}</div>`
+          : `<label for="history-sender">Send as</label><select id="history-sender">${state.assistants.map((a) => `<option value="${h(a.id)}" ${a.id === state.selectedAssistantId ? "selected" : ""}>${h(a.name)}</option>`).join("")}</select><div class="account-links"><button class="button" data-action="new-message">New message</button>${
+              listDemoConversations(state, state.selectedAssistantId)
+                .map(
+                  (c) =>
+                    `<button class="text-button" data-action="open-conversation" data-id="${h(c.id)}">${h(c.name)}</button>`,
+                )
+                .join("") || "<p>No conversations yet.</p>"
+            }</div>`;
+      return openDialog(
+        route() === "missions" ? "Mission history" : "Message history",
+        content,
+      );
+    }
+    if (action === "automations")
+      return openDialog(
+        "Automations",
+        "<p>Recurring workflows are part of the hosted platform. This dashboard includes the Missions interface and local task previews.</p>",
+      );
+    if (action === "filter-conversations") {
+      conversationFilter = conversationFilter === "all" ? "connected" : "all";
+      renderNavigation();
+      return;
+    }
+    if (action === "open-conversation") {
+      const [senderId, recipientId] = id.split(":");
+      state.selectedAssistantId = senderId;
+      selectedRecipientId = recipientId;
+      activeConversationId = id;
+      messageDraft = "";
+      if (dialog.open) dialog.close();
+      render();
+      return;
+    }
+    if (action === "remove-attachment") {
+      messageAttachments.splice(Number(id), 1);
+      render();
+      return;
+    }
     if (action === "profile") return profileDialog(id);
     if (action === "back-home") {
       location.hash = "home";
@@ -494,17 +602,24 @@ document.addEventListener("click", (event) => {
       const mission = state.missions.find((m) => m.id === id);
       return openDialog(
         "Mission details",
-        `<h3>${h(mission.title)}</h3><p>${h(mission.description)}</p><p class="section-note">${h(mission.status)} · ${mission.step}/${mission.steps.length} simulated steps complete.</p>`,
+        `<h3>${h(mission.title)}</h3><p>${h(mission.description)}</p><p class="section-note">${h(mission.status)} · ${mission.step}/${mission.steps.length} simulated steps complete.</p><ol class="mission-detail-steps">${mission.steps.map((step, i) => `<li>${i < mission.step ? "✓" : "○"} ${h(step)}</li>`).join("")}</ol>${mission.status !== "Completed" ? button("Simulate next step", "advance-mission", mission.id, "primary") : ""}`,
       );
     }
     if (action === "select-mission") {
       selectedMissionId = id;
+      draftingMission = false;
+      missionNoteDraft = "";
       if (dialog.open) dialog.close();
       render();
       return;
     }
     if (action === "new-message") {
-      promptDraft = "";
+      activeConversationId = "";
+      selectedRecipientId = "";
+      messageDraft = "";
+      messageAttachments = [];
+      if (dialog.open) dialog.close();
+      render();
       document.querySelector("#message")?.focus();
       return;
     }
@@ -522,6 +637,17 @@ document.addEventListener("click", (event) => {
     }
     if (action === "confirm-reset") {
       state = createDemoState();
+      selectedMissionId = state.missions[0].id;
+      missionQuery = "";
+      conversationQuery = "";
+      activeConversationId = "";
+      selectedRecipientId = "";
+      messageDraft = "";
+      messageAttachments = [];
+      draftingMission = false;
+      promptDraft = "";
+      promptAssistantId = "";
+      missionNoteDraft = "";
       query = "";
       filter = "all";
       dialog.close();
@@ -545,6 +671,7 @@ document.addEventListener("click", (event) => {
     }
     if (action === "advance-mission") {
       const m = advanceMission(state, id);
+      if (dialog.open) dialog.close();
       notify(
         m.status === "Completed"
           ? "Demo Mission completed."
@@ -553,6 +680,10 @@ document.addEventListener("click", (event) => {
     }
     if (action === "chat" || action === "select-chat") {
       state.selectedAssistantId = id;
+      activeConversationId = "";
+      selectedRecipientId = "";
+      messageDraft = "";
+      messageAttachments = [];
       if (dialog.open) dialog.close();
       if (route() !== "messages") {
         location.hash = "messages";
@@ -598,6 +729,8 @@ document.addEventListener("submit", (event) => {
         data.get("assistant"),
       );
       selectedMissionId = mission.id;
+      draftingMission = false;
+      missionNoteDraft = "";
       promptDraft = "";
       dialog.close();
       if (route() !== "missions") {
@@ -607,9 +740,27 @@ document.addEventListener("submit", (event) => {
       notify("Demo Mission created.");
     }
     if (form.id === "message-form") {
-      sendMessage(state, state.selectedAssistantId, data.get("message"));
+      sendMessage(
+        state,
+        state.selectedAssistantId,
+        data.get("message"),
+        data.get("recipient"),
+      );
+      selectedRecipientId = String(data.get("recipient"));
+      activeConversationId = `${state.selectedAssistantId}:${selectedRecipientId}`;
+      messageDraft = "";
+      messageAttachments = [];
+    }
+    if (form.id === "mission-note-form") {
+      addMissionNote(state, selectedMissionId, data.get("note"));
+      missionNoteDraft = "";
     }
     render();
+    if (form.id === "mission-note-form") {
+      document.querySelector("#mission-note")?.focus();
+      const log = document.querySelector(".mission-thread");
+      log.scrollTop = log.scrollHeight;
+    }
     if (form.id === "message-form") {
       document.querySelector("#message").focus();
       const log = document.querySelector(".chat-messages");
@@ -623,8 +774,18 @@ document.addEventListener("submit", (event) => {
 });
 
 document.addEventListener("input", (event) => {
+  if (event.target.id === "message") {
+    messageDraft = event.target.value;
+    return;
+  }
+  if (event.target.id === "mission-note") {
+    missionNoteDraft = event.target.value;
+    return;
+  }
   if (event.target.id === "quick-mission") {
     promptDraft = event.target.value;
+    const review = document.querySelector('[aria-label="Review new mission"]');
+    if (review) review.disabled = !promptDraft.trim() || !promptAssistantId;
     return;
   }
   if (
@@ -653,6 +814,39 @@ document.addEventListener("input", (event) => {
   search.setSelectionRange(start, end);
 });
 document.addEventListener("change", (event) => {
+  if (
+    event.target.name === "assistant" &&
+    event.target.closest("#quick-mission-form")
+  ) {
+    promptAssistantId = event.target.value;
+    const picker = document.querySelector(".prompt-agent-picker");
+    picker.open = false;
+    picker.querySelector("summary").textContent = "+ 1 agent";
+    document.querySelector('[aria-label="Review new mission"]').disabled =
+      !promptDraft.trim();
+    return;
+  }
+  if (event.target.id === "history-sender") {
+    state.selectedAssistantId = event.target.value;
+    activeConversationId = "";
+    selectedRecipientId = "";
+    messageDraft = "";
+    dialog.close();
+    render();
+    return;
+  }
+  if (event.target.id === "message-recipient") {
+    selectedRecipientId = event.target.value;
+    return;
+  }
+  if (event.target.id === "message-attachments") {
+    messageAttachments = [
+      ...messageAttachments,
+      ...[...event.target.files].map((f) => ({ name: f.name, size: f.size })),
+    ];
+    render();
+    return;
+  }
   if (event.target.id === "network-directory") {
     directoryScope = event.target.value;
     if (route() === "connections") {
@@ -674,6 +868,9 @@ document.addEventListener("change", (event) => {
   }
   if (event.target.id === "chat-assistant") {
     state.selectedAssistantId = event.target.value;
+    activeConversationId = "";
+    selectedRecipientId = "";
+    messageDraft = "";
     render();
     return;
   }

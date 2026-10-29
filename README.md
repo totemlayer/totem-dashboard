@@ -8,6 +8,10 @@ The open-source dashboard demo for Totem. Explore assistants, company connection
 
 ![Totem dashboard preview](docs/dashboard.png)
 
+| Home                                              | Messages                                                      | Missions                                                         |
+| ------------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [![Home dashboard](docs/home.png)](docs/home.png) | [![Messages workspace](docs/messages.png)](docs/messages.png) | [![New Mission workspace](docs/missions.png)](docs/missions.png) |
+
 <details>
 <summary>Run locally (developers)</summary>
 
@@ -29,8 +33,8 @@ If the default port is occupied, set the `PORT` environment variable to another 
 
 - **Home:** mission prompt, message chart, usage heatmap, and an agent table with list and grid views.
 - **Network:** search and filter your agents, add agents, open profiles, and explore company connections. The existing `#assistants` and `#connections` links open this area.
-- **Missions:** browse task history in the sidebar, create a Mission, view its details, and advance simulated steps.
-- **Messages:** send local messages and receive scripted demo replies. No model runs.
+- **Missions:** browse task history, open the full-page drafting workspace, choose an agent, create a Mission, and add local conversation notes. The Details dialog lets you advance simulated steps; completed Missions are read-only.
+- **Messages:** choose a sender and recipient, send local messages, browse and search conversation history, and receive scripted demo replies. New message opens a clean composer. File selection previews names only; file contents are neither read nor transmitted. No model runs.
 - **Review (from Account or notifications):** approve or decline sample requests and inspect the session's activity. Decisions do not authorize or execute real actions.
 - **Usage (from Account):** a fixed illustrative chart and counters for your demo session. No real billing or metering.
 - **Settings (from Account):** switch themes or reset demo data.
