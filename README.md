@@ -27,28 +27,28 @@ If the default port is occupied, set the `PORT` environment variable to another 
 
 ## Explore
 
-- **Home:** workspace summary, pending demo requests, and sample activity.
-- **Assistants:** search by name or skill, filter status, add sample assistants, view profiles, pause, and resume.
-- **Totem Network:** toggle sample connections, create Missions, and advance simulated task steps.
-- **Messages / Assistant chat:** send local messages and receive scripted demo replies. No model runs.
-- **Review:** approve or decline sample requests and inspect the session's activity. Decisions do not authorize or execute real actions.
-- **Usage:** a fixed illustrative chart and counters for your demo session. No real billing or metering.
-- **Settings:** switch themes or reset demo data.
-- **Developer:** see the public repository's scope.
+- **Home:** mission prompt, message chart, usage heatmap, and an agent table with list and grid views.
+- **Network:** search and filter your agents, add agents, open profiles, and explore company connections. The existing `#assistants` and `#connections` links open this area.
+- **Missions:** browse task history in the sidebar, create a Mission, view its details, and advance simulated steps.
+- **Messages:** send local messages and receive scripted demo replies. No model runs.
+- **Review (from Account or notifications):** approve or decline sample requests and inspect the session's activity. Decisions do not authorize or execute real actions.
+- **Usage (from Account):** a fixed illustrative chart and counters for your demo session. No real billing or metering.
+- **Settings (from Account):** switch themes or reset demo data.
+- **Developer (from Account or the Dashboard demo label):** see the public repository's scope.
 
 Names, organizations, messages, usage figures, and initial activity use sample data. Changes live in page memory and disappear on reload. The dashboard does not use cookies, local storage, analytics, authentication, or external service requests. Do not enter real credentials or sensitive information into a demo.
 
 ## Scope
 
-| Included under MIT | Outside this repository |
-| --- | --- |
-| Dashboard layout, navigation, and styles | Agent execution and automatic receiving |
-| Sample demo fixtures | Production messaging and orchestration |
-| Local interaction logic | Authentication, authorization, and credential services |
-| Preview server and static export | Billing, deployment infrastructure, and customer data |
-| Tests and contribution instructions | Proprietary backend source and private Git history |
+| Included under MIT                       | Outside this repository                                |
+| ---------------------------------------- | ------------------------------------------------------ |
+| Dashboard layout, navigation, and styles | Agent execution and automatic receiving                |
+| Sample demo fixtures                     | Production messaging and orchestration                 |
+| Local interaction logic                  | Authentication, authorization, and credential services |
+| Preview server and static export         | Billing, deployment infrastructure, and customer data  |
+| Tests and contribution instructions      | Proprietary backend source and private Git history     |
 
-The interface follows Totem's dashboard design and brand. It is a standalone implementation built for public exploration, rather than a drop-in frontend for the hosted service. The demo model is not an SDK, service contract, security implementation, or evidence of real agent execution.
+The interface follows the current hosted Totem dashboard: a dark workspace rail, four main sections, the Home mission prompt and activity charts, a Network agent directory, and dedicated Messages and Missions studios. It is a standalone implementation built for public exploration, rather than a drop-in frontend for the hosted service. The demo model is not an SDK, service contract, security implementation, or evidence of real agent execution.
 
 ## Develop
 

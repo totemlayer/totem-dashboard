@@ -1,33 +1,72 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Explore the open-source Totem dashboard with sample assistants, Missions, messages, and reviews. All interactions are simulated locally.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Open-source dashboard demo. Explore Totem’s current interface with sample agents, Missions, messages, and reviews. The backend and agent runtime are proprietary."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
     <title>Totem Dashboard · Open-source demo</title>
-    <link rel="icon" type="image/svg+xml" href="./mark.svg">
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="icon" type="image/svg+xml" href="./mark.svg" />
+    <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./src/app.mjs"></script>
   </head>
   <body>
     <a class="skip" href="#main">Skip to content</a>
     <div class="shell">
       <aside class="sidebar" aria-label="Workspace sidebar">
-        <a class="brand" href="#home" aria-label="Totem home"><img src="./mark.svg" width="28" height="32" alt=""><span>Totem</span></a>
-        <div class="workspace"><span>Workspace</span><strong>Example Studio <span class="demo-tag">Demo</span></strong></div>
+        <a class="brand" href="#home" aria-label="Totem home"
+          ><img src="./mark.svg" width="22" height="26" alt="" /><span
+            >Totem</span
+          ></a
+        >
+        <span class="workspace-label">Workspace</span>
         <nav id="navigation" aria-label="Workspace navigation"></nav>
-        <div class="sidebar-foot"><span class="avatar small">ES</span><div><strong>Example Studio</strong><span>Demo workspace</span></div></div>
+        <div id="studio-navigation"></div>
+        <div class="sidebar-foot">
+          <button
+            class="icon-button"
+            id="sidebar-toggle"
+            data-action="navigation"
+            aria-label="Minimize sidebar"
+            aria-expanded="true"
+          ></button>
+          <div>
+            <button
+              class="icon-button"
+              id="notifications"
+              data-action="notifications"
+              aria-label="Approval notifications"
+            ></button
+            ><button
+              class="icon-button account-trigger"
+              id="account"
+              data-action="account"
+              aria-label="Account options"
+            ></button>
+          </div>
+        </div>
       </aside>
       <div class="body">
-        <header class="topbar"><span id="breadcrumb">Workspace / Home</span><div><span class="local-indicator">Demo</span><button class="icon-button" id="theme" aria-label="Switch color theme"></button><a class="source-link" href="https://github.com/totemlayer/totem-dashboard" target="_blank" rel="noopener noreferrer">Source code ↗</a></div></header>
-        <div class="demo-notice"><strong>Open-source dashboard demo.</strong> Explore with sample data. The Totem backend and agent runtime are proprietary.</div>
         <main id="main" tabindex="-1"></main>
-        <footer>Totem Dashboard <span>MIT-licensed interface · Simulated activity · Resets on reload</span></footer>
+        <a
+          class="demo-label"
+          href="#developer"
+          aria-label="Dashboard demo: source and scope"
+          >Dashboard demo</a
+        >
       </div>
     </div>
     <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
     <div id="toast" role="status" aria-live="polite"></div>
-    <noscript>This dashboard uses JavaScript for local demo interactions. Enable JavaScript and reload.</noscript>
+    <noscript
+      >This dashboard uses JavaScript for local demo interactions. Enable
+      JavaScript and reload.</noscript
+    >
   </body>
 </html>
